@@ -1,12 +1,29 @@
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
-from medicine_salse_sys.models import Custormer
+from bysms.models import Custormer
+
+
+def home( request ):
+    return render( request, "signin.html" )
+    # if "usertype" not in request.session:
+    #     return render( request, "sign.html" )
+
+    if request.session["usertype"] == "manager":
+        return render( request, "manager.html" )
+    else:
+        return render( request, "sales.html" )
+
+
+
 
 def list_customer( request ):
+    print( "*" * 15 )
+    print( "*" * 15 )
     customer_set = Custormer.objects.values()
     ret_list = list( customer_set )
-    return JsonResponse( {"ret":0, "ret_list":ret_list} )
+    print( ret_list )
+    return HttpResponse( json.dumps( {"ret":0, "ret_list":ret_list}, ensure_ascii=False ), content_type='application/json' )
 
 def add_customer( request ):
     info = request.params["data"]
@@ -43,12 +60,15 @@ def del_customer( request ):
     customer.delete()
     return JsonResponse( { "ret": 0 } )
 
+
 def dispatcher( request ):
     # Judge: if sign in with manager acount
     if "usertype" not in request.session:
         return render( request, "sign.html" )
     if request.session["usertype"] != "manager":
         return render( request, "sign.html" )
+
+    return list_customer( request )
 
     # get http request params
     if request.method == "GET":
